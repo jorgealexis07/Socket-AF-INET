@@ -5,7 +5,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 //netbd.h es necesitada por la estructura hostent
- 
 int main(int argc, char *argv[])
 {
  
@@ -19,17 +18,17 @@ if(argc > 2)
  ip=argv[1];
  
 struct hostent *he;
+ /*lee y valida argumentos*/
  /* estructura que recibirÃ¡ informaciÃ³n sobre el nodo remoto */
  struct sockaddr_in server;
  /* informaciÃ³n sobre la direcciÃ³n del servidor */
- 
 if ((he=gethostbyname(ip))==NULL){
  /* llamada a gethostbyname() */
  printf("gethostbyname() error\n");
  exit(-1);
  }
  
-//Paso 2, definicion de socket
+//Paso 2, definicion de socket y creacion de la conexion con el servidor
  if ((fd=socket(AF_INET, SOCK_STREAM, 0))==-1){
  /* llamada a socket() */
  printf("socket() error\n");
@@ -57,7 +56,7 @@ if ((numbytes=recv(fd,buf,100,0)) == -1){
  }
  
 buf[numbytes]='\0';
- 
+/*Recibe la conexion y la imprime*/ 
 printf("Mensaje del Servidor: %s\n",buf);
  /* muestra el mensaje de bienvenida del servidor =) */
  
