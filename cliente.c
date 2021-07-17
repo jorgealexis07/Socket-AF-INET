@@ -1,50 +1,70 @@
-#include<stdio.h>
-#include<string.h>
-#include<errno.h>
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<sys/un.h>
-
-#define DIRSIZE 8192
-
-main(argc, argv)
-int argc;
-char *argv[];
+// Ficheros de cabecera
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+//netbd.h es necesitada por la estructura hostent
+ 
+int main(int argc, char *argv[])
 {
-	char dir[DIRSIZE];
-	int sd;
-	struct sockaddr_un sin;
-
-	/*verificando un numero parametros de entrada*/
-	if(argc != 2){
-		fprintf(stderr,"Error,uso:%s<directorio>\n",argv[0]);
-		exit(1);
-	}
-	/*obtencion de un socket tipo AF_LINUX (IGUAL QUE EL SERVIDOR)*/
-	if((sd=socket(AF_UNIX,SOCK_STREAM,0))==-1){
-		perror("socket");
-		exit(1);
-	}
-	/*llenando los campos de la estructura de la direccion unix, mismos datos servidor*/
-	strcpy(sin.sun_path,"./socket");
-	sin.sun_family=AF_UNIX;
-	/*CONECTANDOSE AL ARCHIVO ./socket*/
-	if(connect(sd,(struct sockaddr*)&sin,sizeof(sin))==-1){
-		perror("connect");
-		exit(1);
-	}
-	/*enviar mensaje al servidor*/
-	strcpy(dir,argv[1]);
-	if(write(sd,dir,sizeof(dir))==-1){
-		perror("write");
-		exit(1);
-	}
-	/*esperar por la respuesta*/	
-	if(read(sd,dir,sizeof(dir))==-1){
-		perror("read");
-		exit(1);
-	}
-	/*imprimir los resultados y cerrando la conexion del socket*/
-	printf("%s\n",dir);
-	close(sd);	
+ 
+if(argc > 2)
+{
+ //Primer paso, definir variables
+ char *ip;
+ int fd, numbytes,puerto;
+ char buf[100];
+ puerto=atoi(argv[2]);
+ ip=argv[1];
+ 
+struct hostent *he;
+ /* estructura que recibirÃƒÂ¡ informaciÃƒÂ³n sobre el nodo remoto */
+ struct sockaddr_in server;
+ /* informaciÃƒÂ³n sobre la direcciÃƒÂ³n del servidor */
+ 
+if ((he=gethostbyname(ip))==NULL){
+ /* llamada a gethostbyname() */
+ printf("gethostbyname() error\n");
+ exit(-1);
+ }
+ 
+//Paso 2, definicion de socket
+ if ((fd=socket(AF_INET, SOCK_STREAM, 0))==-1){
+ /* llamada a socket() */
+ printf("socket() error\n");
+ exit(-1);
+ }
+//Datos del servidor
+ server.sin_family = AF_INET;
+ server.sin_port = htons(puerto);
+ server.sin_addr = *((struct in_addr *)he->h_addr);
+ /*he->h_addr pasa la informaciÃƒÂ³n de ``*he'' a "h_addr" */
+ bzero(&(server.sin_zero),8);
+ 
+ //Paso 3, conectarnos al servidor
+ if(connect(fd, (struct sockaddr *)&server,
+ sizeof(struct sockaddr))==-1){
+ /* llamada a connect() */
+ printf("connect() error\n");
+ exit(-1);
+ }
+ 
+if ((numbytes=recv(fd,buf,100,0)) == -1){
+ /* llamada a recv() */
+ printf("Error en recv() \n");
+ exit(-1);
+ }
+ 
+buf[numbytes]='\0';
+ 
+printf("Mensaje del Servidor: %s\n",buf);
+ /* muestra el mensaje de bienvenida del servidor =) */
+ 
+close(fd);
+}
+else{
+printf("No se ingreso el ip y puerto por parametro\n");
+}
+ 
 }
