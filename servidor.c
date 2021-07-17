@@ -1,59 +1,70 @@
-#include<stdio.h>
-#include<string.h>
-#include<errno.h>
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<sys/un.h>
-
-#define DIRSIZE 8192
-
-main()
+// Ficheros de cabecera
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string.h>
+ 
+//FunciÃƒÂ³n principal
+int main(int argc, char **argv)
 {
-	char dir[DIRSIZE];
-	INT sd, sd_actual;
-	struct sockaddr_un sin;
-	
-	/*OBTENCION DE UN SOCKET tipo AF_UNIX*/
-	((sd=socket(AF_UNIX,SOCK_STREAM,0))==-1){
-		perror("socket");
-		exit(1);
-	}
-	/* llenando los campos de la estructura de direccion unix */
-	strcpy(sin.sun_path,"./socket");
-	sin.sun_family=AF_UNIX;	
-
-	/*asociando el socket al archivo ./socket*/
-	if(bind(sd,(struc sockaddr*)&sin,sizeof(sin))==-1){
-		perror("bind");
-		exit(1);
-	}
-	/*ponerse a ecuchar a traves del socket*/
-	if(listen(sd,5)==-1){
-		perror("listen");
-		exit(1);
-	}
-	/*ESPERANDO QUE UN CLIENTE solicite un servicio*/
-	if(read(sd_actual=accept(sd,0,0))==-1{
-		perror("accept");
-		exit(1);
-	}
-	/*tomar un mensaje del cliente*/
-	if(read(sd_actual,dir,sizeof(dir))==-1){
-		perror("read");
-		exit(1);
-	}
-	/*realizando servicio solicitado: leyendo el directorio*/
-	lee_dir(dir);
-	/*enviando la respuesta del servicio*/
-	if(write(sd_actual,dir,sizeof(dir))==-1){
-		perror("write");
-		exit(1);
-	}
-	/*cerrar los dos socket*/
-	close(sd_actual);
-	/*no olvidar realizar un poco de limpieza*/
-		unlink("./socket");
-}		
-
-
+ 
+if(argc > 1)
+{
+ 
+//Primer paso, definir variables
+int fd,fd2,longitud_cliente,puerto;
+puerto=atoi(argv[1]);
+ 
+//Se necesitan dos estructuras del tipo sockaddr
+//La primera guarda info del server
+//La segunda del cliente
+ struct sockaddr_in server;
+ struct sockaddr_in client;
+ 
+//Configuracion del servidor
+ server.sin_family= AF_INET; //Familia TCP/IP
+ server.sin_port = htons(puerto); //Puerto
+ server.sin_addr.s_addr = INADDR_ANY; //Cualquier cliente puede conectarse
+ bzero(&(server.sin_zero),8); //Funcion que rellena con 0's
+ 
+ //Paso 2, definicion de socket
+ if (( fd=socket(AF_INET,SOCK_STREAM,0) )<0){
+ perror("Error de apertura de socket");
+ exit(-1);
+ }
+ 
+ //Paso 3, avisar al sistema que se creo un socket
+ if(bind(fd,(struct sockaddr*)&server, sizeof(struct sockaddr))==-1) {
+ printf("error en bind() \n");
+ exit(-1);
+ }
+ 
+ //Paso 4, establecer el socket en modo escucha
+if(listen(fd,5) == -1) {
+ printf("error en listen()\n");
+ exit(-1);
+ }
+ 
+ //Paso5, aceptar conexiones
+ while(1) {
+ longitud_cliente= sizeof(struct sockaddr_in);
+ /* A continuaciÃƒÂ³n la llamada a accept() */
+ if ((fd2 = accept(fd,(struct sockaddr *)&client,&longitud_cliente))==-1) {
+ printf("error en accept()\n");
+ exit(-1);
+ }
+ 
+send(fd2,"Bienvenido a mi servidor.\n",26,0);
+ 
+close(fd2); /* cierra fd2 */
+ }
+close(fd);
+}
+else{
+printf("NO se ingreso el puerto por parametro\n");
+}
+ 
+return 0;
+ 
 }
